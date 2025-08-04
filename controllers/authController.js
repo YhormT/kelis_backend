@@ -1,117 +1,9 @@
-// const userService = require('../services/userService');
-// const jwt = require('jsonwebtoken');
-// require('dotenv').config();
-
-// const loginUser = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-
-//     ////////////////////////////////1️⃣ Check if user exists  --- GODFREY ///////////////////////////////
-//     const user = await userService.getUserByEmail(email);
-//     if (!user) {
-//       return res.status(400).json({ message: "Invalid email or password" });
-//     }
-
-//     /////////////////////////////// 2️⃣ Compare passwords (WITHOUT HASHING) --- GODFREY ////////////////////////////////
-//     if (user.password !== password) {
-//       return res.status(400).json({ message: "Invalid email or password" });
-//     }
-
-//     /////////////////////////////// 3️⃣ Generate JWT token --- GODFREY ///////////////////////////////////// 
-//     const token = jwt.sign(
-//       { id: user.id, email: user.email, role: user.role },
-//       process.env.JWT_SECRET,
-//       { expiresIn: "1h" }
-//     );
-
-   
-//     res.status(200).json({ message: "Login successful", token, user });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
-// module.exports = { loginUser };
-
-
-// const userService = require('../services/userService');
-// const jwt = require('jsonwebtoken');
-// require('dotenv').config();
-
-// // Store active sessions - key: user ID, value: session data
-// const activeSessions = new Map();
-
-// const loginUser = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-    
-//     ////////////////////////////////1️⃣ Check if user exists  --- GODFREY ///////////////////////////////
-//     const user = await userService.getUserByEmail(email);
-//     if (!user) {
-//       return res.status(400).json({ message: "Invalid email or password" });
-//     }
-    
-//     /////////////////////////////// 2️⃣ Compare passwords (WITHOUT HASHING) --- GODFREY ////////////////////////////////
-//     if (user.password !== password) {
-//       return res.status(400).json({ message: "Invalid email or password" });
-//     }
-
-//     /////////////////////////////// Check for existing session --- ADDED FUNCTIONALITY ///////////////////////////////
-//     if (activeSessions.has(user.id)) {
-//       return res.status(403).json({ message: "This account is currently in use. Please log out from other devices first." });
-//     }
-    
-//     /////////////////////////////// 3️⃣ Generate JWT token --- GODFREY /////////////////////////////////////
-    
-//     const token = jwt.sign(
-//       { id: user.id, email: user.email, role: user.role },
-//       process.env.JWT_SECRET,
-//       { expiresIn: "1h" }
-//     );
-    
-//     // Store session information
-//     activeSessions.set(user.id, {
-//       token,
-//       loginTime: new Date().toISOString()
-//     });
-    
-//     res.status(200).json({ message: "Login successful", token, user });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
-// // Add logout function to clear sessions
-// const logoutUser = async (req, res) => {
-//   try {
-//     // Extract user ID from token
-//     const token = req.headers.authorization?.split(' ')[1];
-//     if (!token) {
-//       return res.status(401).json({ message: "No authentication token provided" });
-//     }
-    
-//     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-//     const userId = decoded.id;
-    
-//     // Remove from active sessions
-//     if (activeSessions.has(userId)) {
-//       activeSessions.delete(userId);
-//     }
-    
-//     res.status(200).json({ message: "Logged out successfully" });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
-// module.exports = { loginUser, logoutUser };
-
-
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../config/db');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
-const prisma = new PrismaClient();
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const loginUser = async (req, res) => {
   try {
@@ -139,7 +31,7 @@ const loginUser = async (req, res) => {
     /////////////////////////////// 4️⃣ Generate JWT token --- GODFREY /////////////////////////////////////
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
+      JWT_SECRET,
       { expiresIn: "1h" }
     );
     
